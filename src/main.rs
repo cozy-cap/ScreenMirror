@@ -1,3 +1,4 @@
+use gstreamer as gst;
 use gst::prelude::*;
 use std::env;
 
@@ -26,7 +27,7 @@ fn main() {
         // dxgiscreencapsrc: Native DirectX low-latency screen capture
         // mfh264enc: Windows built-in hardware encoding (zero CPU usage)
         format!(
-            "dxgiscreencapsrc monitor={} ! video/x-raw,framerate=60/1 ! videoconvert ! mfh264enc bitrate=5000 rc-mode=cbr ! rtph264pay ! udpsink host={} port=5000",
+            "gdiscreencapsrc monitor={} ! videoconvert ! video/x-raw,framerate=60/1 ! x264enc bitrate=5000 tune=zerolatency speed-preset=ultrafast ! rtph264pay ! udpsink host={} port=5000",
             monitor, ip
         )
     } else if mode == "client" {
