@@ -27,13 +27,13 @@ fn main() {
         // dxgiscreencapsrc: Native DirectX low-latency screen capture
         // mfh264enc: Windows built-in hardware encoding (zero CPU usage)
         format!(
-            "gdiscreencapsrc monitor={} ! videoconvert ! video/x-raw,framerate=60/1 ! x264enc bitrate=5000 tune=zerolatency speed-preset=ultrafast ! rtph264pay ! udpsink host={} port=5000",
+            "d3d11screencapturesrc monitor-index={} show-cursor=true ! d3d11convert ! video/x-raw(memory:D3D11Memory),format=NV12,framerate=60/1 ! mfh264enc bitrate=5000 ! rtph264pay ! udpsink host={} port=5000",
             monitor, ip
         )
     } else if mode == "client" {
         // Client Pipeline (Linux or Windows)
-        // videoconvert: Translates the raw decoded video into a format Wayland/X11 can actually display
-        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! autovideosink sync=false".to_string()
+        // watchdog timeout=2000: Triggers a shutdown if no frames are received for 2 seconds (2000ms)
+        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! watchdog timeout=2000 ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! autovideosink sync=false".to_string()
     } else {
         panic!("Invalid mode. Use 'host' or 'client'.");
     };
