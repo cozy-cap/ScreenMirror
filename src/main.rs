@@ -32,8 +32,8 @@ fn main() {
         )
     } else if mode == "client" {
         // Client Pipeline (Linux or Windows)
-        // watchdog timeout=2000: Triggers a shutdown if no frames are received for 2 seconds (2000ms)
-        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! watchdog timeout=2000 ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! autovideosink sync=false".to_string()
+        // videoconvert: Translates the raw decoded video into a format Wayland/X11 can actually display
+        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! autovideosink sync=false".to_string()
     } else {
         panic!("Invalid mode. Use 'host' or 'client'.");
     };
