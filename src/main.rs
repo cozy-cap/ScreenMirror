@@ -21,19 +21,18 @@ fn main() {
             panic!("Host mode requires the Client IP address.");
         }
         let ip = &args[2];
-        let monitor = if args.len() > 3 { &args[3] } else { "1" }; // Captures display #1 by default
+        let monitor = if args.len() > 3 { &args[3] } else { "1" };
 
-        // Windows Host Pipeline
-        // dxgiscreencapsrc: Native DirectX low-latency screen capture
-        // mfh264enc: Windows built-in hardware encoding (zero CPU usage)
+        // HOST FIX: Added `show-cursor=true` to capture the mouse.
+        // HOST TWEAK: Added `config-interval=1` to rtph264pay for faster stream recovery.
         format!(
-            "d3d11screencapturesrc monitor-index={} show-cursor=true ! d3d11convert ! video/x-raw(memory:D3D11Memory),format=NV12,framerate=60/1 ! mfh264enc bitrate=5000 ! rtph264pay ! udpsink host={} port=5000",
+            "d3d11screencapturesrc monitor-index={} show-cursor=true ! d3d11convert ! video/x-raw(memory:D3D11Memory),format=NV12,framerate=60/1 ! mfh264enc bitrate=5000 ! rtph264pay config-interval=1 ! udpsink host={} port=5000",
             monitor, ip
         )
     } else if mode == "client" {
-        // Client Pipeline (Linux or Windows)
-        // videoconvert: Translates the raw decoded video into a format Wayland/X11 can actually display
-        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! autovideosink sync=false".to_string()
+        // CLIENT FIX: Replaced `decodebin ! videoconvert` with hardware-accelerated `vaapih264dec`.
+        // Note: Using autovideosink directly after the hardware decoder prevents the CPU from stepping in to do color conversion.
+        "udpsrc port=5000 caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96\" ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! vaapih264dec ! autovideosink sync=false".to_string()
     } else {
         panic!("Invalid mode. Use 'host' or 'client'.");
     };
