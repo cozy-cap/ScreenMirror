@@ -1,5 +1,5 @@
 # Dependencies
-[Cargo]{https://man.archlinux.org/man/cargo.1.en}
+[Cargo](https://man.archlinux.org/man/cargo.1.en)
 
 # Install
 ```bash
